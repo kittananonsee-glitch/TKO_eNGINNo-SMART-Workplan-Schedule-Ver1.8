@@ -586,6 +586,9 @@ textarea.fi{resize:vertical;min-height:65px;}
     <div class="sb-item" onclick="nav('dmaic')" id="nav-dmaic">
       <span class="si">📐</span><span class="sl">DMAIC Projects</span>
     </div>
+    <div class="sb-item" onclick="nav('inspect')" id="nav-inspect">
+      <span class="si">🔍</span><span class="sl">Inspection & Visit Site</span>
+    </div>
 
     <div class="sb-sec">🔗 CONNECT</div>
     <div class="sb-item" onclick="nav('webapp')" id="nav-webapp">
@@ -915,6 +918,64 @@ textarea.fi{resize:vertical;min-height:65px;}
         <button class="btn btn-c" onclick="openDMAICModal()">＋ Add Project</button>
       </div>
       <div id="dmaic-list"><div style="text-align:center;padding:30px;color:var(--text3);">ยังไม่มีโครงการ</div></div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         PAGE: INSPECTION & VISIT SITE
+    ══════════════════════════════════ -->
+    <div class="page" id="page-inspect">
+      <div class="sec-hdr">
+        <div><h2>🔍 Inspection & Visit Site</h2><p>สำรวจหน่วยงาน · BU Site Survey · Root Cause Analysis</p></div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-c" onclick="openInspectModal()">＋ New Inspection</button>
+          <button class="btn btn-p" onclick="openPSDModal()">📋 PSD Analysis Form</button>
+        </div>
+      </div>
+
+      <!-- Stats row -->
+      <div class="stats-row g4" style="margin-bottom:14px;">
+        <div class="stat" style="border-color:rgba(0,245,255,0.2);">
+          <div class="sl">📋 การสำรวจทั้งหมด</div>
+          <div class="sv" id="ins-cnt-total" style="color:var(--cyan);">0</div>
+        </div>
+        <div class="stat" style="border-color:rgba(239,68,68,0.2);">
+          <div class="sl">🚨 Emergency</div>
+          <div class="sv" id="ins-cnt-emergency" style="color:var(--red);">0</div>
+        </div>
+        <div class="stat" style="border-color:rgba(245,158,11,0.2);">
+          <div class="sl">⚠️ Urgently</div>
+          <div class="sv" id="ins-cnt-urgently" style="color:var(--yellow);">0</div>
+        </div>
+        <div class="stat" style="border-color:rgba(16,185,129,0.2);">
+          <div class="sl">✅ Normal</div>
+          <div class="sv" id="ins-cnt-normal" style="color:var(--green);">0</div>
+        </div>
+      </div>
+
+      <!-- Filter bar -->
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;">
+        <select id="ins-filter-bu" class="fi" style="width:160px;padding:5px 8px;" onchange="renderInspect()">
+          <option value="">All BU / หน่วยงาน</option>
+        </select>
+        <button onclick="openAddBUModal()" style="padding:5px 12px;background:rgba(0,245,255,0.08);border:1px solid rgba(0,245,255,0.3);border-radius:8px;color:var(--cyan);font-size:0.72rem;cursor:pointer;white-space:nowrap;font-family:Sarabun,sans-serif;font-weight:600;">➕ เพิ่มหน่วยงาน</button>
+        <select id="ins-filter-criteria" class="fi" style="width:150px;padding:5px 8px;" onchange="renderInspect()">
+          <option value="">All Criteria</option>
+          <option value="Emergency">🚨 Emergency</option>
+          <option value="Urgently">⚠️ Urgently</option>
+          <option value="Normal">✅ Normal</option>
+        </select>
+        <select id="ins-filter-mode" class="fi" style="width:180px;padding:5px 8px;" onchange="renderInspect()">
+          <option value="">All Mode</option>
+          <option value="Reliability">Reliability</option>
+          <option value="Risk Assessment">Risk Assessment</option>
+          <option value="Cost Efficiency">Cost Efficiency</option>
+          <option value="ESG">ESG</option>
+          <option value="Environmental">Environmental</option>
+          <option value="Skill staff">Skill staff</option>
+        </select>
+      </div>
+
+      <div id="inspect-list"><div style="text-align:center;padding:40px;color:var(--text3);">ยังไม่มีการสำรวจ · กด ＋ New Inspection</div></div>
     </div>
 
     <!-- ══════════════════════════════════
@@ -1459,6 +1520,327 @@ textarea.fi{resize:vertical;min-height:65px;}
 </div>
 </div>
 
+<div class="modal" id="modal-inspect">
+<div class="modal-box" style="max-width:720px;">
+  <div class="modal-hdr">
+    <h3 id="inspect-modal-title" style="color:var(--cyan);">🔍 New Inspection & Visit Site</h3>
+    <button class="modal-close" onclick="closeModal('modal-inspect')">×</button>
+  </div>
+
+  <!-- Section 1: Basic Info -->
+  <div style="font-size:0.68rem;font-weight:700;color:var(--cyan);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);">📅 ข้อมูลการสำรวจ</div>
+  <div class="fg2">
+    <div class="fg"><label class="fl">วันที่สำรวจ *</label><input type="date" id="ins-date" class="fi"></div>
+    <div class="fg"><label class="fl">เวลาที่สำรวจ</label><input type="time" id="ins-time" class="fi"></div>
+  </div>
+  <div class="fg2">
+    <div class="fg">
+      <label class="fl">หน่วยงาน / BU *</label>
+      <select id="ins-bu" class="fi">
+        <option value="">— เลือกหน่วยงาน —</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">Mode การสำรวจ *</label>
+      <select id="ins-mode" class="fi">
+        <option value="Reliability">🔧 Reliability</option>
+        <option value="Risk Assessment">⚠️ Risk Assessment</option>
+        <option value="Cost Efficiency">💰 Cost Efficiency</option>
+        <option value="ESG">🌍 ESG</option>
+        <option value="Environmental">🌿 Environmental</option>
+        <option value="Skill staff">👷 Skill staff</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Location -->
+  <div style="font-size:0.68rem;font-weight:700;color:var(--cyan);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);margin-top:4px;">📍 Location</div>
+  <div class="fg">
+    <label class="fl">สถานที่ / Location *</label>
+    <input type="text" id="ins-location" class="fi" placeholder="เช่น อาคาร B, Plant 3, ห้อง Server...">
+  </div>
+  <div class="fg">
+    <label class="fl">Google Maps Link (URL)</label>
+    <div style="display:flex;gap:6px;">
+      <input type="url" id="ins-map-url" class="fi" placeholder="https://maps.google.com/...">
+      <button type="button" onclick="openMapUrl()" style="padding:7px 12px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;color:var(--green);font-size:0.7rem;cursor:pointer;white-space:nowrap;">🗺️ เปิดแผนที่</button>
+    </div>
+  </div>
+
+  <!-- Place Photo -->
+  <div style="font-size:0.68rem;font-weight:700;color:var(--cyan);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);margin-top:4px;">📷 Place Photo (สถานที่)</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;" id="ins-place-thumbs"></div>
+  <label style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;background:rgba(0,245,255,0.06);border:1px dashed rgba(0,245,255,0.3);color:var(--cyan);font-size:0.72rem;cursor:pointer;">
+    📸 ถ่ายรูปสถานที่
+    <input type="file" accept="image/*" multiple style="display:none;" onchange="insPhotoAdd(event,'place')">
+  </label>
+  <span style="font-size:0.62rem;color:var(--text3);margin-left:8px;" id="ins-place-count">0/3</span>
+
+  <!-- System -->
+  <div style="font-size:0.68rem;font-weight:700;color:var(--cyan);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);margin-top:10px;">⚙️ System & Sub-System</div>
+  <div class="fg2">
+    <div class="fg">
+      <label class="fl">System (กรอกหรือเลือก)</label>
+      <input type="text" id="ins-system" class="fi" list="ins-system-list" placeholder="AC / BAS / EE / SN / FP / FA ...">
+      <datalist id="ins-system-list">
+        <option value="AC - Air Conditioning">
+        <option value="BAS - Building Automation System">
+        <option value="EE - Electrical Engineering">
+        <option value="SN - Sanitary">
+        <option value="FP - Fire Protection">
+        <option value="FA - Fire Alarm">
+        <option value="Plumbing">
+        <option value="CCTV / Security">
+        <option value="Generator">
+        <option value="Elevator">
+        <option value="Solar PV">
+      </datalist>
+    </div>
+    <div class="fg">
+      <label class="fl">Sub-System (กรอกหรือเลือก)</label>
+      <input type="text" id="ins-subsystem" class="fi" list="ins-sub-list" placeholder="Chiller plant / AHU / FCU ...">
+      <datalist id="ins-sub-list">
+        <option value="Chiller Plant">
+        <option value="AHU - Air Handling Unit">
+        <option value="FCU - Fan Coil Unit">
+        <option value="Cooling Tower">
+        <option value="Pump System">
+        <option value="VRV/VRF System">
+        <option value="Fresh Air Unit">
+        <option value="Exhaust Fan">
+        <option value="MDB - Main Distribution Board">
+        <option value="LDB - Local Distribution Board">
+        <option value="Transformer">
+        <option value="UPS">
+        <option value="CRAC - Computer Room AC">
+      </datalist>
+    </div>
+  </div>
+  <!-- Sub-system photos -->
+  <div style="margin-bottom:8px;">
+    <label style="font-size:0.7rem;color:var(--text3);display:block;margin-bottom:6px;">📷 รูป Sub-System (สูงสุด 3 รูป)</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;" id="ins-sub-thumbs"></div>
+    <label style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:rgba(168,85,247,0.06);border:1px dashed rgba(168,85,247,0.3);color:var(--purple);font-size:0.7rem;cursor:pointer;">
+      📷 ถ่ายรูป Sub-System
+      <input type="file" accept="image/*" multiple style="display:none;" onchange="insPhotoAdd(event,'sub')">
+    </label>
+    <span style="font-size:0.62rem;color:var(--text3);margin-left:8px;" id="ins-sub-count">0/3</span>
+  </div>
+
+  <!-- Issue / Risk / Solution -->
+  <div style="font-size:0.68rem;font-weight:700;color:var(--cyan);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);margin-top:4px;">🔎 Issue Analysis</div>
+  <div class="fg">
+    <label class="fl">Issue / ปัญหาที่พบ *</label>
+    <textarea id="ins-issue" class="fi" rows="2" placeholder="อธิบายปัญหา/ความผิดปกติที่พบ..."></textarea>
+  </div>
+  <div class="fg">
+    <label class="fl">Risk / Effect (ความเสี่ยงและผลกระทบ)</label>
+    <textarea id="ins-risk" class="fi" rows="2" placeholder="ผลกระทบที่อาจเกิดขึ้น / ความเสี่ยง..."></textarea>
+  </div>
+  <div style="font-size:0.7rem;color:var(--text3);margin-bottom:4px;">💡 Solution / แนวทางแก้ไข</div>
+  <div class="fg3">
+    <div class="fg"><label class="fl">Solution 1</label><input type="text" id="ins-sol1" class="fi" placeholder="แนวทางที่ 1..."></div>
+    <div class="fg"><label class="fl">Solution 2</label><input type="text" id="ins-sol2" class="fi" placeholder="แนวทางที่ 2..."></div>
+    <div class="fg"><label class="fl">Solution 3</label><input type="text" id="ins-sol3" class="fi" placeholder="แนวทางที่ 3..."></div>
+  </div>
+  <div class="fg"><label class="fl">Solution 4</label><input type="text" id="ins-sol4" class="fi" placeholder="แนวทางที่ 4..."></div>
+
+  <!-- Action -->
+  <div class="fg2">
+    <div class="fg"><label class="fl">Action by (ผู้รับผิดชอบ)</label><input type="text" id="ins-action-by" class="fi" placeholder="ชื่อ / ทีม..."></div>
+    <div class="fg"><label class="fl">Follow up when (วันติดตาม)</label><input type="date" id="ins-followup" class="fi"></div>
+  </div>
+
+  <!-- Criteria -->
+  <div class="fg">
+    <label class="fl" style="color:var(--yellow);">🏷️ Summarize Criteria Issue *</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <label style="display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;cursor:pointer;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.06);font-size:0.78rem;color:var(--red);">
+        <input type="radio" name="ins-criteria" value="Emergency" style="accent-color:var(--red);"> 🚨 Emergency
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;cursor:pointer;border:1px solid rgba(245,158,11,0.3);background:rgba(245,158,11,0.06);font-size:0.78rem;color:var(--yellow);">
+        <input type="radio" name="ins-criteria" value="Urgently" style="accent-color:var(--yellow);"> ⚠️ Urgently
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;cursor:pointer;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.06);font-size:0.78rem;color:var(--green);">
+        <input type="radio" name="ins-criteria" value="Normal" checked style="accent-color:var(--green);"> ✅ Normal
+      </label>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button class="btn btn-r" onclick="closeModal('modal-inspect')">Cancel</button>
+    <button class="btn btn-p" style="margin-right:auto;" onclick="saveInspectOpenPSD()">💾 Save + เปิด PSD Form</button>
+    <button class="btn btn-g" onclick="saveInspect()">💾 Save Inspection</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ MODAL: PSD CORRECTIVE & ROOT CAUSE ANALYSIS ══ -->
+<div class="modal" id="modal-psd">
+<div class="modal-box" style="max-width:860px;">
+  <div class="modal-hdr">
+    <h3 style="color:var(--yellow);">📋 PSD — การวิเคราะห์และแก้ไข (Corrective & Root Cause Analysis)</h3>
+    <button class="modal-close" onclick="closeModal('modal-psd')">×</button>
+  </div>
+
+  <!-- Header Info -->
+  <div style="background:rgba(245,158,11,0.05);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:12px;margin-bottom:14px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+      <div class="fg" style="margin:0;"><label class="fl">Description / รายละเอียดปัญหา *</label><textarea id="psd-desc" class="fi" rows="2" placeholder="อธิบายปัญหาหรือเหตุการณ์..."></textarea></div>
+      <div class="fg" style="margin:0;"><label class="fl">Established Date</label><input type="date" id="psd-est-date" class="fi"></div>
+      <div class="fg" style="margin:0;"><label class="fl">Issued by</label><input type="text" id="psd-issued-by" class="fi" placeholder="ชื่อผู้จัดทำ"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:8px;">
+      <div class="fg" style="margin:0;"><label class="fl">System</label><input type="text" id="psd-system" class="fi" placeholder="Air condition / EE / BAS..."></div>
+      <div class="fg" style="margin:0;"><label class="fl">Location</label><input type="text" id="psd-location" class="fi" placeholder="อาคาร / Zone..."></div>
+      <div class="fg" style="margin:0;"><label class="fl">BU / Organization</label><select id="psd-bu" class="fi"><option value="">— เลือก —</option></select></div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+    <!-- Left Column -->
+    <div>
+      <!-- 1. Issue Problem -->
+      <div style="font-size:0.7rem;font-weight:700;color:var(--yellow);margin-bottom:6px;border-left:3px solid var(--yellow);padding-left:6px;">1. Issue Problem / รายละเอียดของปัญหา</div>
+      <textarea id="psd-issue" class="fi" rows="4" style="margin-bottom:10px;" placeholder="อธิบายปัญหาโดยละเอียด อ้างอิงตัวเลข/วันที่/ค่าผิดปกติ..."></textarea>
+
+      <!-- 2. How to process -->
+      <div style="font-size:0.7rem;font-weight:700;color:var(--cyan);margin-bottom:6px;border-left:3px solid var(--cyan);padding-left:6px;">2. How to process / วิธีดำเนินการแก้ไขเบื้องต้น</div>
+      <textarea id="psd-process" class="fi" rows="3" style="margin-bottom:10px;" placeholder="1. ...\n2. ...\n3. ..."></textarea>
+
+      <!-- 3. Root Cause Analysis - 5M1E -->
+      <div style="font-size:0.7rem;font-weight:700;color:var(--purple);margin-bottom:8px;border-left:3px solid var(--purple);padding-left:6px;">3. Root Cause Analysis (5M1E)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
+        <div class="fg" style="margin:0;"><label class="fl" style="color:#f59e0b;">👷 MAN</label><textarea id="psd-man" class="fi" rows="2" placeholder="สาเหตุจากบุคลากร..."></textarea></div>
+        <div class="fg" style="margin:0;"><label class="fl" style="color:#00f5ff;">⚙️ MACHINE</label><textarea id="psd-machine" class="fi" rows="2" placeholder="สาเหตุจากเครื่องจักร..."></textarea></div>
+        <div class="fg" style="margin:0;"><label class="fl" style="color:#a855f7;">📋 METHOD</label><textarea id="psd-method" class="fi" rows="2" placeholder="สาเหตุจากวิธีการ..."></textarea></div>
+        <div class="fg" style="margin:0;"><label class="fl" style="color:#10b981;">📦 MATERIAL</label><textarea id="psd-material" class="fi" rows="2" placeholder="สาเหตุจากวัสดุ..."></textarea></div>
+        <div class="fg" style="margin:0;"><label class="fl" style="color:#ec4899;">🌿 ENV</label><textarea id="psd-env" class="fi" rows="2" placeholder="สาเหตุจากสภาพแวดล้อม..."></textarea></div>
+        <div class="fg" style="margin:0;"><label class="fl" style="color:#f97316;">📊 MEASUREMENT</label><textarea id="psd-measure" class="fi" rows="2" placeholder="สาเหตุจากการวัด..."></textarea></div>
+      </div>
+
+      <!-- 4. Scope & Limitation -->
+      <div style="font-size:0.7rem;font-weight:700;color:var(--text2);margin-bottom:6px;border-left:3px solid rgba(255,255,255,0.2);padding-left:6px;">4. Scope & Limitations / ขอบเขตและข้อจำกัด</div>
+      <textarea id="psd-scope" class="fi" rows="2" style="margin-bottom:10px;" placeholder="1. ...\n2. ..."></textarea>
+
+      <!-- 5. Responsible Person -->
+      <div style="font-size:0.7rem;font-weight:700;color:var(--green);margin-bottom:8px;border-left:3px solid var(--green);padding-left:6px;">5. Responsible Person / ผู้รับผิดชอบ</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
+        <div class="fg" style="margin:0;"><label class="fl">Management/Operation</label><input type="text" id="psd-mgmt" class="fi" placeholder="ชื่อ..."></div>
+        <div class="fg" style="margin:0;"><label class="fl">Specialist/Consultant</label><input type="text" id="psd-spec" class="fi" placeholder="ชื่อ..."></div>
+        <div class="fg" style="margin:0;"><label class="fl">Project/Site</label><input type="text" id="psd-project" class="fi" placeholder="ชื่อ..."></div>
+        <div class="fg" style="margin:0;"><label class="fl">Support Team / Supervisor</label><input type="text" id="psd-support" class="fi" placeholder="ชื่อ..."></div>
+        <div class="fg" style="margin:0;"><label class="fl">Technician</label><input type="text" id="psd-tech" class="fi" placeholder="ชื่อทีม..."></div>
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div>
+      <!-- 6. Improve / Troubleshooting Plan -->
+      <div style="font-size:0.7rem;font-weight:700;color:var(--green);margin-bottom:8px;border-left:3px solid var(--green);padding-left:6px;">6. Improve / Troubleshooting Plan</div>
+      <div id="psd-improve-rows" style="margin-bottom:8px;"></div>
+      <button type="button" onclick="addPSDImproveRow()" class="btn btn-g" style="padding:4px 10px;font-size:0.68rem;margin-bottom:10px;">＋ เพิ่มแผนงาน</button>
+
+      <!-- BEFORE/AFTER Photos -->
+      <div style="font-size:0.7rem;font-weight:700;color:var(--cyan);margin-bottom:8px;border-left:3px solid var(--cyan);padding-left:6px;">📷 รูป BEFORE / AFTER</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div>
+          <label class="fl">BEFORE (ก่อน) — 2 รูป</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;" id="psd-before-thumbs"></div>
+          <label style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:7px;background:rgba(239,68,68,0.07);border:1px dashed rgba(239,68,68,0.3);color:var(--red);font-size:0.68rem;cursor:pointer;">
+            📷 ก่อนแก้ไข
+            <input type="file" accept="image/*" multiple style="display:none;" onchange="psdPhotoAdd(event,'before')">
+          </label>
+          <span style="font-size:0.6rem;color:var(--text3);margin-left:6px;" id="psd-before-count">0/2</span>
+        </div>
+        <div>
+          <label class="fl">AFTER (หลัง) — 2 รูป</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;" id="psd-after-thumbs"></div>
+          <label style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:7px;background:rgba(16,185,129,0.07);border:1px dashed rgba(16,185,129,0.3);color:var(--green);font-size:0.68rem;cursor:pointer;">
+            📷 หลังแก้ไข
+            <input type="file" accept="image/*" multiple style="display:none;" onchange="psdPhotoAdd(event,'after')">
+          </label>
+          <span style="font-size:0.6rem;color:var(--text3);margin-left:6px;" id="psd-after-count">0/2</span>
+        </div>
+      </div>
+
+      <!-- 7. Operation Controlling -->
+      <div style="font-size:0.7rem;font-weight:700;color:var(--purple);margin-bottom:8px;border-left:3px solid var(--purple);padding-left:6px;">7. Operation Controlling / การควบคุมกระบวนการ</div>
+      <div id="psd-control-rows" style="margin-bottom:8px;"></div>
+      <button type="button" onclick="addPSDControlRow()" class="btn btn-p" style="padding:4px 10px;font-size:0.68rem;margin-bottom:10px;">＋ เพิ่มการควบคุม</button>
+
+      <!-- Sign off -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+        <div class="fg" style="margin:0;"><label class="fl">ISSUE BY</label><input type="text" id="psd-sign-issue" class="fi" placeholder="ชื่อ..."></div>
+        <div class="fg" style="margin:0;"><label class="fl">CHECK BY</label><input type="text" id="psd-sign-check" class="fi" placeholder="ชื่อ..."></div>
+        <div class="fg" style="margin:0;"><label class="fl">APPROVE BY</label><input type="text" id="psd-sign-approve" class="fi" placeholder="ชื่อ..."></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button class="btn btn-r" onclick="closeModal('modal-psd')">Cancel</button>
+    <button class="btn btn-c" onclick="exportPSDForm()">📄 Export PDF View</button>
+    <button class="btn btn-g" onclick="savePSD()">💾 Save PSD Analysis</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ MODAL: ADD / MANAGE BU ══ -->
+<div class="modal" id="modal-addbu">
+<div class="modal-box" style="max-width:520px;">
+  <div class="modal-hdr">
+    <h3 style="color:var(--cyan);">🏢 จัดการหน่วยงาน / อาคาร</h3>
+    <button class="modal-close" onclick="closeModal('modal-addbu')">×</button>
+  </div>
+
+  <!-- Add new BU form -->
+  <div style="background:rgba(0,245,255,0.04);border:1px solid rgba(0,245,255,0.2);border-radius:10px;padding:14px;margin-bottom:14px;">
+    <div style="font-size:0.72rem;font-weight:700;color:var(--cyan);margin-bottom:10px;">➕ เพิ่มหน่วยงาน / อาคารใหม่</div>
+    <div class="fg3">
+      <div class="fg">
+        <label class="fl">Code / รหัส *</label>
+        <input type="text" id="bu-new-code" class="fi" placeholder="เช่น C1, BLD-A, T3...">
+      </div>
+      <div class="fg">
+        <label class="fl">ชื่อหน่วยงาน / อาคาร *</label>
+        <input type="text" id="bu-new-name" class="fi" placeholder="เช่น อาคาร A, Township 1...">
+      </div>
+      <div class="fg">
+        <label class="fl">Icon (Emoji)</label>
+        <input type="text" id="bu-new-icon" class="fi" placeholder="🏢" maxlength="4" style="text-align:center;font-size:1.2rem;">
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">หมายเหตุ / กลุ่มธุรกิจ</label>
+      <input type="text" id="bu-new-note" class="fi" placeholder="เช่น สำนักงานใหญ่, Retail Zone, Residential...">
+    </div>
+    <button onclick="addCustomBU()" style="width:100%;padding:9px;background:rgba(0,245,255,0.1);border:1px solid rgba(0,245,255,0.35);border-radius:8px;color:var(--cyan);font-size:0.8rem;font-weight:700;cursor:pointer;font-family:Sarabun,sans-serif;margin-top:4px;">
+      ➕ เพิ่มหน่วยงานนี้
+    </button>
+  </div>
+
+  <!-- Custom BU list -->
+  <div>
+    <div style="font-size:0.72rem;font-weight:700;color:var(--text2);margin-bottom:8px;">📋 หน่วยงานที่เพิ่มเอง</div>
+    <div id="custom-bu-list"></div>
+  </div>
+
+  <!-- Default BUs reference -->
+  <div style="margin-top:12px;">
+    <div style="font-size:0.7rem;color:var(--text3);margin-bottom:6px;">🏛️ หน่วยงานเริ่มต้น (ระบบ) — ใช้งานได้ทันทีไม่ต้องเพิ่ม</div>
+    <div style="display:flex;flex-wrap:wrap;gap:5px;">
+      ${''/* filled by JS */}
+      <div id="default-bu-tags"></div>
+    </div>
+  </div>
+
+  <div style="margin-top:14px;text-align:right;">
+    <button onclick="closeModal('modal-addbu')" class="btn btn-g">✓ ปิด</button>
+  </div>
+</div>
+</div>
+
 <!-- ══ MODAL: WEEKLY EXPORT DATE RANGE ══ -->
 <div class="modal" id="modal-weekly-export">
 <div class="modal-box" style="max-width:420px;">
@@ -1571,6 +1953,7 @@ var PAGE_META = {
   enginno:     ['eNGINNo Functions', 'B1–B5 · Engineering Innovation Central', '', ''],
   toilet:      ['TOILET Assessment', 'T·O·I·L·E·T Framework', '＋ Assess', 'openToiletModal()'],
   dmaic:       ['DMAIC Projects', 'Six Sigma · Process Improvement', '＋ Project', 'openDMAICModal()'],
+  inspect:     ['Inspection & Visit Site', 'สำรวจหน่วยงาน · Site Survey · Root Cause Analysis', '＋ Inspection', 'openInspectModal()'],
   connect:     ['Data Connection', 'AppSheet · Looker Studio', '', ''],
   admin:       ['Admin Panel', 'User Management · Approve / Reject', '', ''],
 };
@@ -1592,7 +1975,7 @@ function nav(id) {
     // Render
     var renders = { monitor:renderMonitor, webapp:renderWebApp, ai:renderAI, daily:renderDaily, progress:renderProgress, weekly:renderWeekly,
                     monthly:renderMonthly, stakeholder:renderStakeholder,
-                    enginno:renderEnginno, toilet:renderToilet, dmaic:renderDmaic, connect:renderConnect, admin:renderAdmin };
+                    enginno:renderEnginno, toilet:renderToilet, dmaic:renderDmaic, inspect:renderInspect, connect:renderConnect, admin:renderAdmin };
     if (renders[id]) renders[id]();
 }
 
@@ -4165,6 +4548,552 @@ function getAIStatusHtml() {
 window.addEventListener('DOMContentLoaded', function() {
     setTimeout(initApiKeySystem, 300);
 });
+
+
+// ═══════════════════════════════════════════════════
+// CUSTOM BU / BUILDING MANAGEMENT
+// ═══════════════════════════════════════════════════
+var K_CUSTOM_BU = 'eng_custom_bu_v1';
+
+function loadCustomBUs() {
+    try { return JSON.parse(localStorage.getItem(K_CUSTOM_BU)) || []; } catch(e) { return []; }
+}
+function saveCustomBUs(list) {
+    try { localStorage.setItem(K_CUSTOM_BU, JSON.stringify(list)); } catch(e) {}
+}
+function getAllBUs() {
+    return STAKEHOLDERS.concat(ENGINNO_FNS).concat(loadCustomBUs());
+}
+
+function openAddBUModal() {
+    ['bu-new-code','bu-new-name','bu-new-note'].forEach(function(id){
+        var el = document.getElementById(id); if (el) el.value = '';
+    });
+    var ic = document.getElementById('bu-new-icon'); if (ic) ic.value = '🏢';
+    renderCustomBUList();
+    renderDefaultBUTags();
+    openModal('modal-addbu');
+}
+
+function addCustomBU() {
+    var code = (document.getElementById('bu-new-code').value||'').trim().toUpperCase();
+    var name = (document.getElementById('bu-new-name').value||'').trim();
+    var icon = (document.getElementById('bu-new-icon').value||'🏢').trim() || '🏢';
+    var note = (document.getElementById('bu-new-note').value||'').trim();
+    if (!code || !name) { showToast('กรุณากรอก Code และชื่อหน่วยงาน','warn'); return; }
+    if (getAllBUs().find(function(b){ return b.code===code; })) { showToast('⚠️ Code "'+code+'" มีอยู่แล้ว','warn'); return; }
+    var list = loadCustomBUs();
+    list.push({ code:code, name:name, icon:icon, note:note, color:'#6b7280', custom:true });
+    saveCustomBUs(list);
+    ['bu-new-code','bu-new-name','bu-new-note'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+    document.getElementById('bu-new-icon').value='🏢';
+    renderCustomBUList();
+    populateInspectBUs();
+    showToast('✅ เพิ่มหน่วยงาน "'+icon+' '+code+' '+name+'" แล้ว','success');
+}
+
+function deleteCustomBU(code) {
+    if (!confirm('ลบหน่วยงาน "'+code+'" ?')) return;
+    saveCustomBUs(loadCustomBUs().filter(function(b){ return b.code!==code; }));
+    renderCustomBUList();
+    populateInspectBUs();
+    renderInspect();
+    showToast('🗑️ ลบแล้ว','warn');
+}
+
+function renderCustomBUList() {
+    var cont = document.getElementById('custom-bu-list');
+    if (!cont) return;
+    var list = loadCustomBUs();
+    if (!list.length) {
+        cont.innerHTML='<div style="text-align:center;padding:14px;color:var(--text3);font-size:0.75rem;">ยังไม่มีหน่วยงานที่เพิ่มเอง</div>';
+        return;
+    }
+    cont.innerHTML = list.map(function(b) {
+        return '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid var(--border);margin-bottom:6px;">' +
+            '<span style="font-size:1.1rem;flex-shrink:0;">'+b.icon+'</span>' +
+            '<div style="flex:1;min-width:0;">' +
+                '<span style="font-family:Orbitron,sans-serif;font-size:0.65rem;color:var(--cyan);margin-right:6px;">'+escHtml(b.code)+'</span>' +
+                '<span style="font-size:0.8rem;font-weight:600;color:var(--text);">'+escHtml(b.name)+'</span>' +
+                (b.note?'<div style="font-size:0.65rem;color:var(--text3);">'+escHtml(b.note)+'</div>':'') +
+            '</div>' +
+            '<button onclick="deleteCustomBU(\''+escHtml(b.code)+'\')" style="padding:3px 8px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:6px;color:var(--red);font-size:0.65rem;cursor:pointer;flex-shrink:0;">🗑️ ลบ</button>' +
+        '</div>';
+    }).join('');
+}
+
+function renderDefaultBUTags() {
+    var cont = document.getElementById('default-bu-tags');
+    if (!cont) return;
+    cont.innerHTML = STAKEHOLDERS.concat(ENGINNO_FNS).map(function(b) {
+        return '<span style="padding:2px 8px;border-radius:6px;font-size:0.62rem;background:rgba(255,255,255,0.05);color:var(--text3);border:1px solid var(--border);">'+b.icon+' '+b.code+'</span>';
+    }).join(' ');
+}
+
+function populateInspectBUs() {
+    ['ins-bu','psd-bu','ins-filter-bu'].forEach(function(selId) {
+        var sel = document.getElementById(selId);
+        if (!sel) return;
+        var cur = sel.value;
+        sel.innerHTML = '<option value="">— เลือกหน่วยงาน —</option>';
+        // Default group
+        var grpD = document.createElement('optgroup');
+        grpD.label = '🏛️ หน่วยงานหลัก';
+        STAKEHOLDERS.concat(ENGINNO_FNS).forEach(function(s) {
+            var o = document.createElement('option');
+            o.value = s.code;
+            o.textContent = s.icon+' '+s.code+' · '+s.name;
+            grpD.appendChild(o);
+        });
+        sel.appendChild(grpD);
+        // Custom group
+        var custom = loadCustomBUs();
+        if (custom.length) {
+            var grpC = document.createElement('optgroup');
+            grpC.label = '🏢 หน่วยงาน/อาคาร (เพิ่มเอง)';
+            custom.forEach(function(s) {
+                var o = document.createElement('option');
+                o.value = s.code;
+                o.textContent = s.icon+' '+s.code+' · '+s.name+(s.note?' ('+s.note+')':'');
+                grpC.appendChild(o);
+            });
+            sel.appendChild(grpC);
+        }
+        if (cur) sel.value = cur;
+    });
+}
+
+var K_INSPECT = 'eng_inspect_v1';
+var K_PSD     = 'eng_psd_v1';
+var _editInspectId = null;
+var _insPhotos = { place:[], sub:[] };
+var _psdPhotos = { before:[], after:[] };
+var _psdImproveRows = [];
+var _psdControlRows = [];
+var _editPSDId = null;
+
+function loadInspect() {
+    try { return JSON.parse(localStorage.getItem(K_INSPECT)) || []; } catch(e){ return []; }
+}
+function saveInspectData(d){ try { localStorage.setItem(K_INSPECT, JSON.stringify(d)); } catch(e){} }
+function loadPSD() { try { return JSON.parse(localStorage.getItem(K_PSD)) || []; } catch(e){ return []; } }
+function savePSDData(d){ try { localStorage.setItem(K_PSD, JSON.stringify(d)); } catch(e){} }
+
+// ── Photo helpers ──────────────────────────────────
+function insPhotoAdd(event, type) {
+    var files = Array.from(event.target.files);
+    var max = 3;
+    var cur = _insPhotos[type]||[];
+    var remaining = max - cur.length;
+    if (files.length > remaining){ showToast('สูงสุด '+max+' รูป','warn'); files = files.slice(0,remaining); }
+    files.forEach(function(file){
+        var reader = new FileReader();
+        reader.onload = function(e){ _insPhotos[type].push(e.target.result); renderInsThumbs(type); };
+        reader.readAsDataURL(file);
+    });
+    event.target.value='';
+}
+function renderInsThumbs(type) {
+    var box = document.getElementById('ins-'+type+'-thumbs');
+    var cnt = document.getElementById('ins-'+type+'-count');
+    if (!box) return;
+    var imgs = _insPhotos[type]||[];
+    if (cnt) cnt.textContent = imgs.length+'/3';
+    box.innerHTML = imgs.map(function(src,i){
+        return '<div style="position:relative;width:76px;height:76px;">' +
+            '<img src="'+src+'" style="width:76px;height:76px;object-fit:cover;border-radius:8px;border:1px solid var(--border);">' +
+            '<button type="button" onclick="removeInsPhoto(\''+type+'\','+i+')" style="position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:var(--red);border:none;color:#fff;font-size:0.62rem;cursor:pointer;line-height:1;">×</button>' +
+            '</div>';
+    }).join('');
+}
+function removeInsPhoto(type,idx){ _insPhotos[type].splice(idx,1); renderInsThumbs(type); }
+
+function psdPhotoAdd(event, type) {
+    var files = Array.from(event.target.files);
+    var max = 2;
+    var cur = _psdPhotos[type]||[];
+    var remaining = max - cur.length;
+    if (files.length > remaining){ showToast('สูงสุด '+max+' รูป','warn'); files = files.slice(0,remaining); }
+    files.forEach(function(file){
+        var reader = new FileReader();
+        reader.onload = function(e){ _psdPhotos[type].push(e.target.result); renderPSDThumbs(type); };
+        reader.readAsDataURL(file);
+    });
+    event.target.value='';
+}
+function renderPSDThumbs(type) {
+    var box = document.getElementById('psd-'+type+'-thumbs');
+    var cnt = document.getElementById('psd-'+type+'-count');
+    if (!box) return;
+    var imgs = _psdPhotos[type]||[];
+    if (cnt) cnt.textContent = imgs.length+'/2';
+    box.innerHTML = imgs.map(function(src,i){
+        var color = type==='before'?'var(--red)':'var(--green)';
+        return '<div style="position:relative;width:76px;height:76px;">' +
+            '<img src="'+src+'" style="width:76px;height:76px;object-fit:cover;border-radius:8px;border:2px solid '+color+';">' +
+            '<button type="button" onclick="removePSDPhoto(\''+type+'\','+i+')" style="position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:var(--red);border:none;color:#fff;font-size:0.62rem;cursor:pointer;line-height:1;">×</button>' +
+            '</div>';
+    }).join('');
+}
+function removePSDPhoto(type,idx){ _psdPhotos[type].splice(idx,1); renderPSDThumbs(type); }
+
+// ── Inspection Modal ──────────────────────────────
+function openInspectModal(id) {
+    _editInspectId = id || null;
+    _insPhotos = { place:[], sub:[] };
+    populateInspectBUs();
+    var now = new Date();
+    document.getElementById('ins-date').value = now.toISOString().split('T')[0];
+    document.getElementById('ins-time').value = now.toTimeString().slice(0,5);
+    ['ins-bu','ins-location','ins-map-url','ins-system','ins-subsystem','ins-issue','ins-risk','ins-sol1','ins-sol2','ins-sol3','ins-sol4','ins-action-by'].forEach(function(x){
+        var el=document.getElementById(x); if(el) el.value='';
+    });
+    document.getElementById('ins-followup').value='';
+    document.querySelector('input[name="ins-criteria"][value="Normal"]').checked = true;
+    renderInsThumbs('place'); renderInsThumbs('sub');
+
+    if (id) {
+        var item = loadInspect().find(function(x){return x.id===id;});
+        if (item) {
+            document.getElementById('ins-date').value       = item.date||'';
+            document.getElementById('ins-time').value       = item.time||'';
+            document.getElementById('ins-bu').value         = item.bu||'';
+            document.getElementById('ins-mode').value       = item.mode||'Reliability';
+            document.getElementById('ins-location').value   = item.location||'';
+            document.getElementById('ins-map-url').value    = item.mapUrl||'';
+            document.getElementById('ins-system').value     = item.system||'';
+            document.getElementById('ins-subsystem').value  = item.subsystem||'';
+            document.getElementById('ins-issue').value      = item.issue||'';
+            document.getElementById('ins-risk').value       = item.risk||'';
+            document.getElementById('ins-sol1').value       = item.sol1||'';
+            document.getElementById('ins-sol2').value       = item.sol2||'';
+            document.getElementById('ins-sol3').value       = item.sol3||'';
+            document.getElementById('ins-sol4').value       = item.sol4||'';
+            document.getElementById('ins-action-by').value  = item.actionBy||'';
+            document.getElementById('ins-followup').value   = item.followup||'';
+            _insPhotos.place = (item.photos&&item.photos.place)||[];
+            _insPhotos.sub   = (item.photos&&item.photos.sub)||[];
+            var r = document.querySelector('input[name="ins-criteria"][value="'+item.criteria+'"]');
+            if (r) r.checked=true;
+            renderInsThumbs('place'); renderInsThumbs('sub');
+        }
+    }
+    document.getElementById('inspect-modal-title').textContent = id ? '✏️ Edit Inspection' : '🔍 New Inspection & Visit Site';
+    openModal('modal-inspect');
+}
+
+function openMapUrl() {
+    var url = document.getElementById('ins-map-url').value.trim();
+    if (url) window.open(url,'_blank');
+    else window.open('https://maps.google.com','_blank');
+}
+
+function saveInspect() {
+    var date = document.getElementById('ins-date').value;
+    var bu   = document.getElementById('ins-bu').value;
+    var loc  = document.getElementById('ins-location').value.trim();
+    var iss  = document.getElementById('ins-issue').value.trim();
+    if (!date||!bu||!loc||!iss) { showToast('กรุณากรอกข้อมูลที่จำเป็น (วันที่/BU/Location/Issue)','warn'); return; }
+    var crit = document.querySelector('input[name="ins-criteria"]:checked');
+    var list = loadInspect();
+    var item = {
+        id: _editInspectId||'INS-'+Date.now(),
+        date: date, time: document.getElementById('ins-time').value,
+        bu: bu, mode: document.getElementById('ins-mode').value,
+        location: loc, mapUrl: document.getElementById('ins-map-url').value.trim(),
+        system: document.getElementById('ins-system').value.trim(),
+        subsystem: document.getElementById('ins-subsystem').value.trim(),
+        issue: iss, risk: document.getElementById('ins-risk').value.trim(),
+        sol1: document.getElementById('ins-sol1').value.trim(),
+        sol2: document.getElementById('ins-sol2').value.trim(),
+        sol3: document.getElementById('ins-sol3').value.trim(),
+        sol4: document.getElementById('ins-sol4').value.trim(),
+        actionBy: document.getElementById('ins-action-by').value.trim(),
+        followup: document.getElementById('ins-followup').value,
+        criteria: crit ? crit.value : 'Normal',
+        photos: { place: _insPhotos.place.slice(), sub: _insPhotos.sub.slice() },
+        created: new Date().toISOString(),
+    };
+    if (_editInspectId) {
+        var idx = list.findIndex(function(x){return x.id===_editInspectId;});
+        if (idx>=0) list[idx]=item; else list.push(item);
+    } else { list.push(item); }
+    saveInspectData(list);
+    closeModal('modal-inspect');
+    renderInspect();
+    showToast(_editInspectId?'✅ Inspection updated':'✅ บันทึกการสำรวจแล้ว','success');
+    _editInspectId = null;
+}
+
+function saveInspectOpenPSD() {
+    saveInspect();
+    setTimeout(function(){ openPSDModal(); }, 300);
+}
+
+function deleteInspect(id) {
+    if (!confirm('ลบรายการสำรวจนี้?')) return;
+    var list = loadInspect().filter(function(x){return x.id!==id;});
+    saveInspectData(list);
+    renderInspect();
+    showToast('🗑️ ลบแล้ว','warn');
+}
+
+// ── Render Inspect List ───────────────────────────
+function renderInspect() {
+    populateInspectBUs();
+    var list = loadInspect();
+    var buF  = (document.getElementById('ins-filter-bu')||{}).value||'';
+    var critF= (document.getElementById('ins-filter-criteria')||{}).value||'';
+    var modeF= (document.getElementById('ins-filter-mode')||{}).value||'';
+    var filtered = list.filter(function(x){
+        return (!buF||x.bu===buF) && (!critF||x.criteria===critF) && (!modeF||x.mode===modeF);
+    });
+    // Stats
+    var cnt = { Emergency:0, Urgently:0, Normal:0 };
+    list.forEach(function(x){ if(cnt[x.criteria]!==undefined) cnt[x.criteria]++; });
+    var t=document.getElementById('ins-cnt-total'); if(t) t.textContent=list.length;
+    var e=document.getElementById('ins-cnt-emergency'); if(e) e.textContent=cnt.Emergency;
+    var u=document.getElementById('ins-cnt-urgently'); if(u) u.textContent=cnt.Urgently;
+    var n=document.getElementById('ins-cnt-normal'); if(n) n.textContent=cnt.Normal;
+
+    var el = document.getElementById('inspect-list');
+    if (!el) return;
+    if (!filtered.length) { el.innerHTML='<div style="text-align:center;padding:40px;color:var(--text3);">ไม่พบรายการสำรวจ</div>'; return; }
+
+    var critColors = { Emergency:['var(--red)','rgba(239,68,68,0.12)','🚨'], Urgently:['var(--yellow)','rgba(245,158,11,0.1)','⚠️'], Normal:['var(--green)','rgba(16,185,129,0.08)','✅'] };
+    var buMap = {}; STAKEHOLDERS.concat(ENGINNO_FNS).forEach(function(s){ buMap[s.code]=s; });
+
+    el.innerHTML = filtered.slice().reverse().map(function(d){
+        var crit = critColors[d.criteria]||critColors.Normal;
+        var bu   = buMap[d.bu];
+        var solutions = [d.sol1,d.sol2,d.sol3,d.sol4].filter(Boolean);
+        var allPhotos = ((d.photos&&d.photos.place)||[]).concat((d.photos&&d.photos.sub)||[]);
+        var thumbs = allPhotos.slice(0,4).map(function(src){
+            return '<img src="'+src+'" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--border);">';
+        }).join('');
+        return '<div class="card" style="border-color:'+crit[0]+'33;background:'+crit[1]+'">' +
+            '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">' +
+            '<div style="flex:1;min-width:0;">' +
+            '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;">' +
+            '<span style="font-family:Orbitron,sans-serif;font-size:0.62rem;color:var(--text3);">'+d.id+'</span>' +
+            '<span style="padding:2px 8px;border-radius:6px;font-size:0.65rem;font-weight:700;background:'+crit[1]+';color:'+crit[0]+';">'+crit[2]+' '+d.criteria+'</span>' +
+            '<span style="padding:2px 8px;border-radius:6px;font-size:0.65rem;background:rgba(0,245,255,0.08);color:var(--cyan);">'+d.mode+'</span>' +
+            (bu?'<span style="padding:2px 8px;border-radius:6px;font-size:0.65rem;background:rgba(255,255,255,0.05);color:var(--text2);">'+bu.icon+' '+bu.code+' '+bu.name+'</span>':'') +
+            '</div>' +
+            '<div style="font-weight:700;font-size:0.88rem;color:var(--text);">📍 '+escHtml(d.location)+'</div>' +
+            '<div style="font-size:0.68rem;color:var(--text3);margin-top:2px;">📅 '+d.date+' '+(d.time?d.time:'')+(d.system?' · ⚙️ '+d.system:'')+(d.subsystem?' > '+d.subsystem:'')+'</div>' +
+            '</div>' +
+            '<div style="display:flex;gap:4px;flex-shrink:0;margin-left:8px;">' +
+            '<button class="btn btn-c" style="padding:2px 7px;font-size:0.6rem;" onclick="viewInspect(\''+d.id+'\')">👁️ ดู</button>' +
+            '<button class="btn btn-y" style="padding:2px 7px;font-size:0.6rem;" onclick="openInspectModal(\''+d.id+'\')">✏️</button>' +
+            '<button class="btn btn-r" style="padding:2px 7px;font-size:0.6rem;" onclick="deleteInspect(\''+d.id+'\')">🗑️</button>' +
+            '</div></div>' +
+            (d.issue?'<div style="font-size:0.78rem;color:var(--text2);margin-bottom:6px;padding:6px 10px;background:rgba(0,0,0,0.2);border-radius:7px;border-left:3px solid '+crit[0]+';">🔎 '+escHtml(d.issue)+'</div>':'')+
+            (d.risk?'<div style="font-size:0.72rem;color:var(--yellow);margin-bottom:6px;">⚠️ Risk: '+escHtml(d.risk)+'</div>':'')+
+            (solutions.length?'<div style="font-size:0.7rem;color:var(--green);margin-bottom:6px;">💡 Solution: '+solutions.map(function(s,i){return (i+1)+'. '+escHtml(s);}).join(' / ')+'</div>':'')+
+            '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">'+
+            '<div style="font-size:0.65rem;color:var(--text3);">'+
+            (d.actionBy?'👤 '+escHtml(d.actionBy)+' · ':'')+(d.followup?'📅 Follow: '+d.followup:'')+'</div>'+
+            (allPhotos.length?'<div style="display:flex;gap:4px;">'+thumbs+'</div>':'')+
+            '</div>'+
+        '</div>';
+    }).join('');
+}
+
+function viewInspect(id) {
+    var d = loadInspect().find(function(x){return x.id===id;});
+    if (!d) return;
+    var buMap = {}; STAKEHOLDERS.concat(ENGINNO_FNS).forEach(function(s){ buMap[s.code]=s; });
+    var bu = buMap[d.bu];
+    var solutions = [d.sol1,d.sol2,d.sol3,d.sol4].filter(Boolean);
+    var critColors = { Emergency:'var(--red)', Urgently:'var(--yellow)', Normal:'var(--green)' };
+    var cc = critColors[d.criteria]||'var(--cyan)';
+    var placePhotos = ((d.photos&&d.photos.place)||[]).map(function(src){
+        return '<img src="'+src+'" style="max-width:100%;max-height:200px;object-fit:cover;border-radius:8px;border:1px solid var(--border);">';
+    }).join('');
+    var subPhotos = ((d.photos&&d.photos.sub)||[]).map(function(src){
+        return '<img src="'+src+'" style="max-width:100%;max-height:200px;object-fit:cover;border-radius:8px;border:1px solid var(--border);">';
+    }).join('');
+
+    var html = '<div style="font-size:0.82rem;line-height:1.7;">' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">' +
+        '<span style="padding:3px 12px;border-radius:8px;font-weight:700;color:'+cc+';background:'+cc+'22;">'+d.criteria+'</span>' +
+        '<span style="padding:3px 12px;border-radius:8px;color:var(--cyan);background:rgba(0,245,255,0.08);">'+d.mode+'</span>' +
+        (bu?'<span style="padding:3px 12px;border-radius:8px;color:var(--text2);background:rgba(255,255,255,0.05);">'+bu.icon+' '+bu.code+'</span>':'')+'</div>' +
+        '<table style="width:100%;border-collapse:collapse;font-size:0.78rem;margin-bottom:12px;">' +
+        [['📅 วันที่/เวลา',d.date+' '+d.time],['📍 Location',d.location],['🗺️ Map',d.mapUrl?'<a href="'+d.mapUrl+'" target="_blank" style="color:var(--cyan);">เปิดแผนที่</a>':'—'],
+         ['⚙️ System',d.system||'—'],['🔩 Sub-System',d.subsystem||'—'],['🔎 Issue',d.issue||'—'],
+         ['⚠️ Risk/Effect',d.risk||'—'],['👤 Action by',d.actionBy||'—'],['📅 Follow up',d.followup||'—']].map(function(r){
+            return '<tr><td style="padding:4px 8px;color:var(--text3);white-space:nowrap;width:120px;">'+r[0]+'</td><td style="padding:4px 8px;color:var(--text);">'+r[1]+'</td></tr>';
+        }).join('') + '</table>' +
+        (solutions.length?'<div style="margin-bottom:10px;"><div style="color:var(--green);font-weight:700;margin-bottom:4px;">💡 Solutions</div>'+solutions.map(function(s,i){return '<div style="padding:4px 0;color:var(--text2);">'+(i+1)+'. '+escHtml(s)+'</div>';}).join('')+'</div>':'')+
+        (placePhotos?'<div style="margin-bottom:8px;"><div style="font-size:0.7rem;color:var(--cyan);font-weight:700;margin-bottom:6px;">📷 Place Photos</div><div style="display:flex;gap:8px;flex-wrap:wrap;">'+placePhotos+'</div></div>':'')+
+        (subPhotos?'<div style="margin-bottom:8px;"><div style="font-size:0.7rem;color:var(--purple);font-weight:700;margin-bottom:6px;">📷 Sub-System Photos</div><div style="display:flex;gap:8px;flex-wrap:wrap;">'+subPhotos+'</div></div>':'')+
+        '<div style="margin-top:12px;text-align:right;"><button class="btn btn-p" onclick="openPSDModal(\''+d.id+'\')" style="font-size:0.72rem;">📋 สร้าง PSD Form</button></div>'+
+    '</div>';
+    document.getElementById('detail-modal-title').textContent = '🔍 '+d.location+' · '+d.date;
+    document.getElementById('detail-modal-body').innerHTML = html;
+    document.getElementById('detail-modal-edit-btn').style.display='none';
+    openModal('modal-detail');
+}
+
+// ═══════════════════════════════════════════════════
+// PSD CORRECTIVE & ROOT CAUSE ANALYSIS
+// ═══════════════════════════════════════════════════
+function addPSDImproveRow() {
+    _psdImproveRows.push({ problem:'', category:'MACHINE', solution:'', resp:'', date:'' });
+    renderPSDImproveRows();
+}
+function removePSDImproveRow(i) { _psdImproveRows.splice(i,1); renderPSDImproveRows(); }
+function renderPSDImproveRows() {
+    var cont = document.getElementById('psd-improve-rows');
+    if (!cont) return;
+    var cats = ['MACHINE','MAN','METHOD','MATERIAL','ENV'];
+    cont.innerHTML = _psdImproveRows.map(function(r,i){
+        return '<div style="display:grid;grid-template-columns:1fr auto auto auto auto;gap:5px;margin-bottom:5px;align-items:center;">' +
+            '<input type="text" class="fi" style="padding:5px 8px;font-size:0.72rem;" placeholder="Problem..." value="'+escHtml(r.problem||'')+'" onchange="_psdImproveRows['+i+'].problem=this.value">' +
+            '<select class="fi" style="padding:5px 8px;font-size:0.7rem;width:110px;" onchange="_psdImproveRows['+i+'].category=this.value">' +
+            cats.map(function(c){ return '<option value="'+c+'"'+(r.category===c?' selected':'')+'>'+c+'</option>'; }).join('') +
+            '</select>' +
+            '<input type="text" class="fi" style="padding:5px 8px;font-size:0.72rem;width:120px;" placeholder="Solution..." value="'+escHtml(r.solution||'')+'" onchange="_psdImproveRows['+i+'].solution=this.value">' +
+            '<input type="text" class="fi" style="padding:5px 8px;font-size:0.72rem;width:90px;" placeholder="Resp." value="'+escHtml(r.resp||'')+'" onchange="_psdImproveRows['+i+'].resp=this.value">' +
+            '<button type="button" onclick="removePSDImproveRow('+i+')" style="padding:4px 8px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:6px;color:var(--red);cursor:pointer;font-size:0.7rem;">×</button>' +
+        '</div>';
+    }).join('') || '<div style="font-size:0.7rem;color:var(--text3);padding:6px 0;">กด ＋ เพิ่มแผนงาน</div>';
+}
+
+function addPSDControlRow() {
+    _psdControlRows.push({ problem:'', action:'', resp:'', plan:'' });
+    renderPSDControlRows();
+}
+function removePSDControlRow(i) { _psdControlRows.splice(i,1); renderPSDControlRows(); }
+function renderPSDControlRows() {
+    var cont = document.getElementById('psd-control-rows');
+    if (!cont) return;
+    cont.innerHTML = _psdControlRows.map(function(r,i){
+        return '<div style="display:grid;grid-template-columns:1fr 1fr auto auto;gap:5px;margin-bottom:5px;align-items:center;">' +
+            '<input type="text" class="fi" style="padding:5px 8px;font-size:0.72rem;" placeholder="Problem..." value="'+escHtml(r.problem||'')+'" onchange="_psdControlRows['+i+'].problem=this.value">' +
+            '<input type="text" class="fi" style="padding:5px 8px;font-size:0.72rem;" placeholder="Action/Criteria..." value="'+escHtml(r.action||'')+'" onchange="_psdControlRows['+i+'].action=this.value">' +
+            '<input type="text" class="fi" style="padding:5px 8px;font-size:0.72rem;width:90px;" placeholder="Resp." value="'+escHtml(r.resp||'')+'" onchange="_psdControlRows['+i+'].resp=this.value">' +
+            '<button type="button" onclick="removePSDControlRow('+i+')" style="padding:4px 8px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:6px;color:var(--red);cursor:pointer;font-size:0.7rem;">×</button>' +
+        '</div>';
+    }).join('') || '<div style="font-size:0.7rem;color:var(--text3);padding:6px 0;">กด ＋ เพิ่มการควบคุม</div>';
+}
+
+function openPSDModal(linkedInspectId) {
+    _editPSDId = null;
+    _psdPhotos = { before:[], after:[] };
+    _psdImproveRows = [
+        { problem:'', category:'MACHINE', solution:'', resp:'' },
+        { problem:'', category:'MAN', solution:'', resp:'' },
+    ];
+    _psdControlRows = [
+        { problem:'', action:'', resp:'' },
+    ];
+    populateInspectBUs();
+    ['psd-desc','psd-issued-by','psd-system','psd-location','psd-issue','psd-process',
+     'psd-man','psd-machine','psd-method','psd-material','psd-env','psd-measure',
+     'psd-scope','psd-mgmt','psd-spec','psd-project','psd-support','psd-tech',
+     'psd-sign-issue','psd-sign-check','psd-sign-approve'].forEach(function(x){
+        var el=document.getElementById(x); if(el) el.value='';
+    });
+    document.getElementById('psd-est-date').value = new Date().toISOString().split('T')[0];
+    // Pre-fill from linked inspection
+    if (linkedInspectId) {
+        var ins = loadInspect().find(function(x){return x.id===linkedInspectId;});
+        if (ins) {
+            document.getElementById('psd-issue').value    = ins.issue||'';
+            document.getElementById('psd-system').value  = ins.system||'';
+            document.getElementById('psd-location').value= ins.location||'';
+            document.getElementById('psd-bu').value      = ins.bu||'';
+        }
+    }
+    renderPSDThumbs('before'); renderPSDThumbs('after');
+    renderPSDImproveRows(); renderPSDControlRows();
+    openModal('modal-psd');
+}
+
+function savePSD() {
+    var desc = document.getElementById('psd-desc').value.trim();
+    if (!desc) { showToast('กรุณากรอก Description','warn'); return; }
+    var list = loadPSD();
+    var item = {
+        id: _editPSDId||'PSD-'+Date.now(),
+        desc:desc,
+        estDate: document.getElementById('psd-est-date').value,
+        issuedBy: document.getElementById('psd-issued-by').value.trim(),
+        system: document.getElementById('psd-system').value.trim(),
+        location: document.getElementById('psd-location').value.trim(),
+        bu: document.getElementById('psd-bu').value,
+        issue: document.getElementById('psd-issue').value.trim(),
+        process: document.getElementById('psd-process').value.trim(),
+        rootCause: {
+            man: document.getElementById('psd-man').value.trim(),
+            machine: document.getElementById('psd-machine').value.trim(),
+            method: document.getElementById('psd-method').value.trim(),
+            material: document.getElementById('psd-material').value.trim(),
+            env: document.getElementById('psd-env').value.trim(),
+            measure: document.getElementById('psd-measure').value.trim(),
+        },
+        scope: document.getElementById('psd-scope').value.trim(),
+        responsible: {
+            mgmt: document.getElementById('psd-mgmt').value.trim(),
+            spec: document.getElementById('psd-spec').value.trim(),
+            project: document.getElementById('psd-project').value.trim(),
+            support: document.getElementById('psd-support').value.trim(),
+            tech: document.getElementById('psd-tech').value.trim(),
+        },
+        improveRows: _psdImproveRows.slice(),
+        controlRows: _psdControlRows.slice(),
+        photos: { before: _psdPhotos.before.slice(), after: _psdPhotos.after.slice() },
+        signoff: {
+            issue: document.getElementById('psd-sign-issue').value.trim(),
+            check: document.getElementById('psd-sign-check').value.trim(),
+            approve: document.getElementById('psd-sign-approve').value.trim(),
+        },
+        created: new Date().toISOString(),
+    };
+    if (_editPSDId) {
+        var idx = list.findIndex(function(x){return x.id===_editPSDId;});
+        if (idx>=0) list[idx]=item; else list.push(item);
+    } else { list.push(item); }
+    savePSDData(list);
+    closeModal('modal-psd');
+    showToast('✅ บันทึก PSD Analysis แล้ว','success');
+    // Refresh inspect page if open
+    if (document.getElementById('page-inspect') && document.getElementById('page-inspect').classList.contains('active')) {
+        renderInspect();
+    }
+}
+
+function exportPSDForm() {
+    var desc = document.getElementById('psd-desc').value.trim() || '(ยังไม่กรอก)';
+    var html = '<html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;font-size:12px;padding:20px;}h2{color:#1a3a6b;border-bottom:2px solid #1a3a6b;padding-bottom:6px;}table{width:100%;border-collapse:collapse;margin-bottom:12px;}td,th{border:1px solid #ccc;padding:5px 8px;vertical-align:top;font-size:11px;}.hdr{background:#1a3a6b;color:#fff;font-weight:700;}.section{font-weight:700;color:#1a3a6b;font-size:12px;margin:10px 0 4px;}</style></head><body>' +
+        '<h2>PSD — การวิเคราะห์และแก้ไข (Corrective & Root Cause Analysis)</h2>' +
+        '<table><tr><td colspan="3"><b>Description:</b> '+escHtml(desc)+'</td></tr>' +
+        '<tr><td><b>Established:</b> '+document.getElementById('psd-est-date').value+'</td>' +
+        '<td><b>Issued by:</b> '+escHtml(document.getElementById('psd-issued-by').value)+'</td>' +
+        '<td><b>System:</b> '+escHtml(document.getElementById('psd-system').value)+' / <b>Location:</b> '+escHtml(document.getElementById('psd-location').value)+'</td></tr></table>' +
+        '<div class="section">Issue Problem</div><p>'+escHtml(document.getElementById('psd-issue').value)+'</p>' +
+        '<div class="section">Root Cause (5M1E)</div>' +
+        '<table><tr><th class="hdr">Category</th><th class="hdr">Root Cause</th></tr>' +
+        [['👷 MAN','psd-man'],['⚙️ MACHINE','psd-machine'],['📋 METHOD','psd-method'],['📦 MATERIAL','psd-material'],['🌿 ENV','psd-env'],['📊 MEASUREMENT','psd-measure']].map(function(r){
+            var v = document.getElementById(r[1]).value;
+            return v?'<tr><td style="width:120px;">'+r[0]+'</td><td>'+escHtml(v)+'</td></tr>':'';
+        }).join('') + '</table>' +
+        '<div class="section">Improve / Troubleshooting Plan</div>' +
+        '<table><tr><th class="hdr">Problem</th><th class="hdr">Category</th><th class="hdr">Solution</th><th class="hdr">Resp.</th></tr>' +
+        _psdImproveRows.map(function(r){ return r.problem?'<tr><td>'+escHtml(r.problem)+'</td><td>'+r.category+'</td><td>'+escHtml(r.solution)+'</td><td>'+escHtml(r.resp)+'</td></tr>':''; }).join('') +
+        '</table>' +
+        '<div style="margin-top:20px;display:flex;justify-content:space-around;"><div>ISSUE BY: '+escHtml(document.getElementById('psd-sign-issue').value)+' Date: ______</div>' +
+        '<div>CHECK BY: '+escHtml(document.getElementById('psd-sign-check').value)+' Date: ______</div>' +
+        '<div>APPROVE BY: '+escHtml(document.getElementById('psd-sign-approve').value)+' Date: ______</div></div>' +
+        '</body></html>';
+    var win = window.open('','_blank');
+    if (win) { win.document.write(html); win.document.close(); win.print(); }
+}
+
+
 
 </script>
 </body>
